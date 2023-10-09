@@ -13,6 +13,7 @@ npm i https://github.com/Ashwanikhurana/lambdatest_assignment
 javascript
 const handleRequests = require('api-requests-library');
 
+```
 const jsonConfig = [
   {
     type: 'sequential',
@@ -21,8 +22,16 @@ const jsonConfig = [
       { url: 'https://api.example.com/endpoint2', method: 'POST', data: { key: 'value' }, token: 'your-token-here' },
     ],
   },
+  {
+    type: 'parallel',
+    requests: [
+      { url: 'https://api.example.com/endpoint1', method: 'GET', token: 'your-token-here' },
+      { url: 'https://api.example.com/endpoint2', method: 'POST', data: { key: 'value' }, token: 'your-token-here' },
+    ],
+  },
   // other groups...
 ];
+```
 
 handleRequests(jsonConfig)
   .then(/* handle results */)
