@@ -1,11 +1,11 @@
 const axios = require('axios');
 
-const makeRequest = async (config, previousResponse) => {
+const makeRequest = async (config, previousResponse, allResponses) => {
   const { url, method, data, token } = config;
   let processedData = data;
-  
+
   if (typeof data === 'function') {
-    processedData = data(previousResponse);
+    processedData = data({ previousResponse, allResponses });
   }
 
   const headers = {};
@@ -22,8 +22,8 @@ const makeRequest = async (config, previousResponse) => {
   }
 };
 
-const handleParallelRequests = async (configs, previousResponse) => {
-  const promises = configs.map((config) => makeRequest(config, previousResponse));
+const handleParallelRequests = async (configs, previousResponse, allResponses) => {
+  const promises = configs.map((config) => makeRequest(config, previousResponse, allResponses));
   const results = await Promise.allSettled(promises);
   return results.map((result, index) => {
     if (result.status === 'fulfilled') {
@@ -34,10 +34,10 @@ const handleParallelRequests = async (configs, previousResponse) => {
   });
 };
 
-const handleSequentialRequests = async (configs, previousResponse) => {
+const handleSequentialRequests = async (configs, previousResponse, allResponses) => {
   let results = [];
   for (let config of configs) {
-    const result = await makeRequest(config, previousResponse);
+    const result = await makeRequest(config, previousResponse, allResponses);
     results.push(result);
     if (result.status === 'success') {
       previousResponse = result.response;
@@ -55,66 +55,19 @@ const handleRequests = async (jsonConfig) => {
     const { requests, type } = group;
     let groupResults;
     if (type === 'parallel') {
-      groupResults = await handleParallelRequests(requests, previousResponse);
+      groupResults = await handleParallelRequests(requests, previousResponse, results);
     } else if (type === 'sequential') {
-      groupResults = await handleSequentialRequests(requests, previousResponse);
+      groupResults = await handleSequentialRequests(requests, previousResponse, results);
     } else {
       throw new Error('Invalid type. Type can be either parallel or sequential.');
     }
     results.push(groupResults);
-    const lastSuccessResult = groupResults.reverse().find(result => result.status === 'success');
+    const lastSuccessResult = groupResults[groupResults.length - 1];
     if (lastSuccessResult) {
       previousResponse = lastSuccessResult.response;
     }
   }
   return results;
 };
-
-const jsonConfig = [
-  {
-    type: 'sequential',
-    requests: [
-      { url: 'https://jsonplaceholder.typicode.com/posts/1', method: 'GET' },
-      { 
-        url: 'https://jsonplaceholder.typicode.com/posts', 
-        method: 'POST', 
-        data: (previousResponse) => ({ title: 'foo', body: previousResponse.data.body, userId: 1 }) 
-      },
-    ],
-  },
-  {
-    type: 'parallel',
-    requests: [
-      { 
-        url: 'https://jsonplaceholder.typicode.com/posts/2', 
-        method: 'GET', 
-        data: (previousResponse) => ({ userId: previousResponse.data.userId }) 
-      },
-      { 
-        url: 'https://jsonplaceholder.typicode.com/posts/3', 
-        method: 'GET', 
-        data: (previousResponse) => ({ userId: previousResponse.data.userId }) 
-      },
-    ],
-  },
-];
-
-handleRequests(jsonConfig)
-  .then((groupResults) => {
-    console.log('groupResults', groupResults);
-    for (let results of groupResults) {
-      for (let result of results) {
-        if (result.status === 'success') {
-          console.log('Response data:', result.response.data);
-        } else {
-          console.error('Request failed:', result.config);
-          console.error('Error message:', result.error);
-        }
-      }
-    }
-  })
-  .catch((error) => {
-    console.error('Error:', error.message);
-  });
 
 module.exports = handleRequests;
