@@ -2,12 +2,6 @@
 
 A simple JavaScript library for making sequential and parallel API requests based on a JSON configuration.
 
-## Installation
-
-bash
-npm install api-requests-library
-
-
 ## Usage
 
 javascript
@@ -39,7 +33,7 @@ Each request configuration can have the following properties:
 
 - `url`: The URL of the request.
 - `method`: The HTTP method of the request.
-- `data`: The data payload of the request. If this is a function, it will be called with the response of the previous request.
+- `data`: The data payload of the request. If this is a function, it will be called with the response of the previous request and all resolved promises.
 - `token`: The authorization token for the request.
 
 Each group in the JSON configuration can have the following properties:
