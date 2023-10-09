@@ -10,10 +10,9 @@ npm i https://github.com/Ashwanikhurana/lambdatest_assignment
 
 ## Usage
 
-javascript
-const handleRequests = require('api-requests-library');
-
 ```
+const handleRequests = require('lambdatest_assignment');
+
 const jsonConfig = [
   {
     type: 'sequential',
