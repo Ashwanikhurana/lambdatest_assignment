@@ -2,6 +2,12 @@
 
 A simple JavaScript library for making sequential and parallel API requests based on a JSON configuration.
 
+## Installation
+
+```
+npm i https://github.com/Ashwanikhurana/lambdatest_assignment
+```
+
 ## Usage
 
 javascript
